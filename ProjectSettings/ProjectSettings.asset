@@ -4,7 +4,7 @@
 PlayerSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 26
-  productGUID: 9de438462eabe4643b5c34b03d19ca35
+  productGUID: 7dcb26adc214c4a4e9c203b6a94d5ed3
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
   AndroidEnableSustainedPerformanceMode: 0
@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: DefaultCompany
-  productName: FishNet tests
+  productName: photon fusion tests
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -161,7 +161,7 @@ PlayerSettings:
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
-    Standalone: com.DefaultCompany.FishNet-tests
+    Standalone: com.DefaultCompany.photon-fusion-tests
   buildNumber:
     Standalone: 0
     VisionOS: 0
@@ -835,7 +835,7 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Standalone: EDGEGAP_PLUGIN_SERVERS;FISHNET;FISHNET_V4
+    Standalone: FUSION_WEAVER;FUSION2
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}
@@ -858,7 +858,7 @@ PlayerSettings:
     tvOS: 1
   incrementalIl2cppBuild: {}
   suppressCommonWarnings: 1
-  allowUnsafeCode: 0
+  allowUnsafeCode: 1
   useDeterministicCompilation: 1
   additionalIl2CppArgs: 
   scriptingRuntimeVersion: 1
@@ -867,14 +867,14 @@ PlayerSettings:
   apiCompatibilityLevelPerPlatform: {}
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: FishNet tests
+  metroPackageName: photon fusion tests
   metroPackageVersion: 
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
   metroCertificateIssuer: 
   metroCertificateNotAfter: 0000000000000000
-  metroApplicationDescription: FishNet tests
+  metroApplicationDescription: photon fusion tests
   wsaImages: {}
   metroTileShortName: 
   metroTileShowName: 0
@@ -943,10 +943,10 @@ PlayerSettings:
   apiCompatibilityLevel: 6
   activeInputHandler: 0
   windowsGamepadBackendHint: 0
-  cloudProjectId: cd502ed3-afd7-45b3-b419-cb7b5647ab15
+  cloudProjectId: 1c1465ce-ac3b-4f98-9ea5-5ad6caea88c1
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: FishNet tests
+  projectName: photon fusion tests
   organizationId: unity_5288310d28369f01bc04
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0

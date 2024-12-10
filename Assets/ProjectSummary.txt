@@ -1,8 +1,9 @@
 Player connecting
-Basic first person player controller, LShift to sprint
+Basic player controller, upon shooting displays visual using Render and ChangeDetector
 
 Synchronised player movement
-LMB shoot bullet without rigidbody, each clients spawns individually 
-RMB shoot bullet with rigidbody, synchronized with Network Transform component, interpolated with Netork Object component
+LMB shoot bullet no rigidbody
+RMB shoot bullet with rigidbody, uses Network Rigidbody 3D for synchronization
+RMB Bullet collision with players, RPC calls to inform hits
 
 RPC calls with Keyboard.E, sender gets different message than receivers

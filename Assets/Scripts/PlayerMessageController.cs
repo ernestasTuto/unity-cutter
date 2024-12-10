@@ -1,8 +1,7 @@
-using FishNet.Connection;
-using FishNet.Managing;
-using FishNet.Object;
+using Fusion;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class PlayerMessageController : NetworkBehaviour
@@ -11,26 +10,26 @@ public class PlayerMessageController : NetworkBehaviour
 
     private void Update()
     {
-        // on input asks servers to send message to everyone, sender receives different message
         if (Input.GetKeyDown(KeyCode.E))
         {
-            SendMessageServerRpc(base.LocalConnection);
+            // upon pressing Keyboard.E sends message to server which sends to all clients, sender displays different message
+            int _number = Random.Range(0, 100);
+            RPC_SendMessage(_number);
         }
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    private void SendMessageServerRpc(NetworkConnection _target)
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority, HostMode = RpcHostMode.SourceIsHostPlayer)]
+    public void RPC_SendMessage(int _number, RpcInfo info = default)
     {
-        int _number = UnityEngine.Random.Range(0, 100);
-        SendMessageObserversRpc(_target, _number);
+        RPC_RelayMessage(_number, info.Source);
     }
 
-    [ObserversRpc]
-    private void SendMessageObserversRpc(NetworkConnection _target, int _number)
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All, HostMode = RpcHostMode.SourceIsServer)]
+    public void RPC_RelayMessage(int _number, PlayerRef messageSource)
     {
         PlayerMessage _newMessage = Instantiate(messagePrefab, transform);
 
-        bool _isSender = _target == base.LocalConnection;
+        bool _isSender = messageSource == Runner.LocalPlayer;
         string _messageText = _isSender ? "I Sent: " + _number : "Hello " + _number;
         _newMessage.SetMessage(_messageText);
     }
