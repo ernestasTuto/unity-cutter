@@ -2,12 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// class for a bullet without rigidbody
-public class ProjectileWithTransformPosition : Projectile
+// projectile script without rigidbody
+
+public class ProjectileWithTransformPosition : MonoBehaviour
 {
+    [SerializeField] private float projectileSpeed = 10;
     private Vector3 velocity;
 
-    public override void Init(Vector3 _direction)
+    public void Init(Vector3 _direction)
     {
         velocity = _direction * projectileSpeed;
     }

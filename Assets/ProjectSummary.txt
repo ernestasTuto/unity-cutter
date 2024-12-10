@@ -1,0 +1,11 @@
+Player connecting
+Basic player controller
+Synchronized, randomized player name color and name on spawn
+
+Synchronised player movement
+LMB bullet with no rigidbody
+RMB bullet with rigidbody spawned on client side
+MMB bullet with rigidbody spawned on server side using Spawn
+Bullets synchronization and detection with rigidbody and without
+
+RPC calls with Keyboard.E, sender gets different message than receivers

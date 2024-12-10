@@ -4,7 +4,7 @@
 PlayerSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 26
-  productGUID: 082c947380d74cc44a38c1d55621b2f5
+  productGUID: ecd0cd6ac9c4a6248970556668bf95dd
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
   AndroidEnableSustainedPerformanceMode: 0
@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: DefaultCompany
-  productName: Multiplayer tests
+  productName: Mirror tests
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -103,7 +103,7 @@ PlayerSettings:
   xboxEnableFitness: 0
   visibleInBackground: 1
   allowFullscreenSwitch: 1
-  fullscreenMode: 1
+  fullscreenMode: 3
   xboxSpeechDB: 0
   xboxEnableHeadOrientation: 0
   xboxEnableGuest: 0
@@ -161,7 +161,7 @@ PlayerSettings:
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
-    Standalone: com.DefaultCompany.Multiplayer-tests
+    Standalone: com.DefaultCompany.Mirror-tests
   buildNumber:
     Standalone: 0
     VisionOS: 0
@@ -834,7 +834,8 @@ PlayerSettings:
   webGLMemoryGeometricGrowthStep: 0.2
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
-  scriptingDefineSymbols: {}
+  scriptingDefineSymbols:
+    Standalone: MIRROR;MIRROR_79_OR_NEWER;MIRROR_81_OR_NEWER;MIRROR_82_OR_NEWER;MIRROR_83_OR_NEWER;MIRROR_84_OR_NEWER;MIRROR_85_OR_NEWER;MIRROR_86_OR_NEWER;MIRROR_89_OR_NEWER
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}
@@ -866,14 +867,14 @@ PlayerSettings:
   apiCompatibilityLevelPerPlatform: {}
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: Multiplayer tests
+  metroPackageName: Mirror tests
   metroPackageVersion: 
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
   metroCertificateIssuer: 
   metroCertificateNotAfter: 0000000000000000
-  metroApplicationDescription: Multiplayer tests
+  metroApplicationDescription: Mirror tests
   wsaImages: {}
   metroTileShortName: 
   metroTileShowName: 0
@@ -942,10 +943,10 @@ PlayerSettings:
   apiCompatibilityLevel: 6
   activeInputHandler: 0
   windowsGamepadBackendHint: 0
-  cloudProjectId: 75a56fdc-d1e4-4cbe-ba68-c5911ffb663a
+  cloudProjectId: db0c7e7f-2b7e-49f5-bb05-5ea5d1131e74
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: Multiplayer tests
+  projectName: Mirror tests
   organizationId: unity_5288310d28369f01bc04
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0

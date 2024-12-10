@@ -1,38 +1,32 @@
-using System;
+using Mirror;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
-using Unity.Netcode;
-using UnityEditor;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
-public class PlayerMessageController : NetworkBehaviour
+// class that displays messages
+
+public class PlayerMessageController : MonoBehaviour
 {
+    public static PlayerMessageController instance;
     [SerializeField] private PlayerMessage messagePrefab;
 
-    private void Update()
+    private void Start()
     {
-        // on input asks servers to send message to everyone, sender receives different message
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            SendMessageServerRpc(NetworkManager.Singleton.LocalClientId);
-        }
+        instance = this;
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    private void SendMessageServerRpc(ulong _senderID)
-    {
-        int _number = UnityEngine.Random.Range(0, 100);
-        SendMessageClientRpc(_senderID, _number);
-    }
-
-    [ClientRpc]
-    private void SendMessageClientRpc(ulong _senderID, int _number)
+    public void LocalMessage(int _number)
     {
         PlayerMessage _newMessage = Instantiate(messagePrefab, transform);
+        string _messageText = "I Sent: " + _number;
+        _newMessage.SetMessage(_messageText);
+    }
 
-        bool _isSender = _senderID == NetworkManager.Singleton.LocalClientId; 
-        string _messageText = _isSender ? "I Sent: " + _number : "Hello " + _number;
+    public void MessageReceived(int _number)
+    {
+        PlayerMessage _newMessage = Instantiate(messagePrefab, transform);
+        string _messageText = "Hello " + _number;
         _newMessage.SetMessage(_messageText);
     }
 }

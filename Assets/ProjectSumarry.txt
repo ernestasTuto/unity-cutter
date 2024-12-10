@@ -1,9 +1,0 @@
-Player connecting
-Basic player controller, movement interpolation
-
-Synchronised player movement
-LMB shoot weapon, RMB change weapon
-Bullets synchronization and detection with rigidbody and without
-Bullet collision with players
-
-RPC calls with Keyboard.E, sender gets different message than receivers

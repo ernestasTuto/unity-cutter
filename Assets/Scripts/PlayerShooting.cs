@@ -1,119 +1,106 @@
+using Mirror;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Netcode;
-using Unity.VisualScripting;
 using UnityEngine;
+
+// LMB bullet with no rigidbody
+// RMB bullet with rigidbody spawned on client side
+// MMB bullet with rigidbody spawned on server side using Spawn
 
 public class PlayerShooting : NetworkBehaviour
 {
-    [SerializeField] private List<Weapon> weapons = new List<Weapon>();
+    public float weaponSpeed = 30.0f;
+    public float weaponForce = 2f;
+    public float weaponLife = 3.0f;
+    public float weaponCooldown = 1.0f;
 
-    private int currentWeaponId = 0;   
-    private Projectile localProjectile;
+    public GameObject weaponBullet;
+    public ProjectileWithTransformPosition weaponBulletNoRb;
+    public GameObject weaponBulletPredicted;
+    public Transform weaponFirePosition;
 
-    private void Start()
-    {
-        weapons[currentWeaponId].gameObject.SetActive(true);
-    }
+    private float weaponCooldownTime;
 
     private void Update()
     {
-        if (!IsOwner)
+        if(!isLocalPlayer)
         {
             return;
         }
 
-        if (Input.GetMouseButton(0) && weapons[currentWeaponId].CanShoot())
+        if (Input.GetButtonDown("Fire1"))
         {
-            var _dir = transform.forward;
-
-            // server instantly spawns bullet for all clients
-            // client sawns local instance of bullet and then asks server to spawn on all other clients
-            if (IsServer)
+            if (Time.time > weaponCooldownTime)
             {
-                OnFireWeapon(_dir, NetworkManager.LocalClientId);
-            }
-            else
-            {
-                localProjectile = SpawnLocalBullet(_dir);
-                OnFireWeaponServerRpc(_dir, NetworkManager.LocalClientId);
+                weaponCooldownTime = Time.time + weaponCooldown;
+                CmdShootRay();
             }
         }
 
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetButtonDown("Fire2"))
         {
-            int _oldId = currentWeaponId;
-            currentWeaponId++;
-            if (currentWeaponId >= weapons.Count)
+            if (Time.time > weaponCooldownTime)
             {
-                currentWeaponId = 0;
+                weaponCooldownTime = Time.time + weaponCooldown;
+                CmdShootBulletRb();
             }
+        }
 
-            OnChangeWeaponServerRpc(_oldId, currentWeaponId);
+        if (Input.GetButtonDown("Fire3"))
+        {
+            if (Time.time > weaponCooldownTime)
+            {
+                weaponCooldownTime = Time.time + weaponCooldown;
+                FireWeaponLocal();
+            }
         }
     }
 
-    #region WeaponChange
-
-    [ServerRpc(RequireOwnership = false)]
-    private void OnChangeWeaponServerRpc(int _disableId, int _enableId)
+    [Command]
+    void CmdShootRay()
     {
-        OnChangeWeaponClientRpc(_disableId, _enableId);
+        RpcFireWeapon();
     }
 
     [ClientRpc]
-    private void OnChangeWeaponClientRpc(int _disableId, int _enableId)
+    void RpcFireWeapon()
     {
-        currentWeaponId = _enableId;
-        weapons[_disableId].gameObject.SetActive(false);    
-        weapons[_enableId].gameObject.SetActive(true);
+        var _dir = transform.forward;
+        ProjectileWithTransformPosition bullet = Instantiate(weaponBulletNoRb, weaponFirePosition.position, weaponFirePosition.rotation);
+        bullet.Init(_dir);
+
+        Destroy(bullet, weaponLife);
     }
 
-    #endregion
-
-    #region BulletSpawning
-
-    // ServerRpc to ask the server to spawn the bullet for all clients
-    [ServerRpc(RequireOwnership = false)]
-    private void OnFireWeaponServerRpc(Vector3 _dir, ulong _senderId)
+    [Command]
+    void CmdShootBulletRb()
     {
-        OnFireWeapon(_dir, _senderId);
-    }
-
-    private void OnFireWeapon(Vector3 _dir, ulong _senderId)
-    {
-        Projectile projectile = weapons[currentWeaponId].ShootWeapon(_dir);
-        NetworkObject netObj = projectile.GetComponent<NetworkObject>();
-        netObj.Spawn();
-
-        HideBulletForOwnerClientRpc(netObj.NetworkObjectId, _senderId);
+        RpcShootBulletRb();
     }
 
     [ClientRpc]
-    private void HideBulletForOwnerClientRpc(ulong _projectileId, ulong _shooterClientId)
+    void RpcShootBulletRb()
     {
-        if(IsServer)
-        {
-            return;
-        }
+        GameObject bullet = Instantiate(weaponBullet, weaponFirePosition.position, weaponFirePosition.rotation);
+        bullet.GetComponent<Rigidbody>().velocity = bullet.transform.forward * weaponSpeed;
 
-        if (NetworkManager.LocalClientId == _shooterClientId)
-        {
-            NetworkObject netObj = NetworkManager.SpawnManager.SpawnedObjects[_projectileId];
-            netObj.GetComponent<Projectile>().SetLocalBullet(localProjectile.gameObject);
-            localProjectile = null;
-            if (netObj != null)
-            {
-                netObj.gameObject.SetActive(false); 
-            }
-        }
+        Destroy(bullet, weaponLife);
     }
 
-    private Projectile SpawnLocalBullet(Vector3 _dir)
+    [Command]
+    void CmdFireWeapon()
     {
-        Projectile projectile = weapons[currentWeaponId].ShootWeapon(_dir);
-        return projectile;
+        GameObject bullet = Instantiate(weaponBulletPredicted, weaponFirePosition.position, weaponFirePosition.rotation);
+        Rigidbody rb = bullet.GetComponent<Rigidbody>();
+        rb.AddForce(bullet.transform.forward * weaponForce, ForceMode.Impulse);
+
+        NetworkServer.Spawn(bullet);
+
+        Destroy(bullet, weaponLife);
     }
 
-    #endregion
+    void FireWeaponLocal()
+    {
+        CmdFireWeapon();
+    }
 }
