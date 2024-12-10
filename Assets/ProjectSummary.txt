@@ -1,11 +1,8 @@
 Player connecting
-Basic player controller
-Synchronized, randomized player name color and name on spawn
+Basic first person player controller, LShift to sprint
 
 Synchronised player movement
-LMB bullet with no rigidbody
-RMB bullet with rigidbody spawned on client side
-MMB bullet with rigidbody spawned on server side using Spawn
-Bullets synchronization and detection with rigidbody and without
+LMB shoot bullet without rigidbody, each clients spawns individually 
+RMB shoot bullet with rigidbody, synchronized with Network Transform component, interpolated with Netork Object component
 
 RPC calls with Keyboard.E, sender gets different message than receivers

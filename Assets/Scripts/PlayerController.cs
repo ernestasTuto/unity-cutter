@@ -1,131 +1,97 @@
-using Mirror;
-using TMPro;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using FishNet.Connection;
+using FishNet.Object;
 
-// simple player controller class
-// on spawn chooses random name with color and synchornizes them using SyncVar
+// basic first person player controller, use Keyboard.LShift to sprint
 
-[RequireComponent(typeof(Rigidbody))]
 public class PlayerController : NetworkBehaviour
 {
-    public float movementSpeed = 5f;
+    [Header("Base setup")]
+    public float walkingSpeed = 7.5f;
+    public float runningSpeed = 11.5f;
+    public float jumpSpeed = 8.0f;
+    public float gravity = 20.0f;
+    public float lookSpeed = 2.0f;
+    public float lookXLimit = 45.0f;
 
-    [SerializeField] 
-    private TextMeshProUGUI playerInfo;
+    CharacterController characterController;
+    Vector3 moveDirection = Vector3.zero;
+    float rotationX = 0;
 
-    [SyncVar(hook = nameof(OnNameChanged))]
-    public string playerName;
+    [HideInInspector]
+    public bool canMove = true;
 
-    [SyncVar(hook = nameof(OnColorChanged))] 
-    public Color playerColor;
+    [SerializeField]
+    private float cameraYOffset = 0.4f;
+    private Camera playerCamera;
 
-    private Rigidbody rb;
-    private Vector3 movement;
-    private Material playerMaterialClone;
 
-    private void OnNameChanged(string oldName, string newName)
+    public override void OnStartClient()
     {
-        if (playerInfo != null)
+        base.OnStartClient();
+        if (base.IsOwner)
         {
-            playerInfo.text = newName;
+            playerCamera = Camera.main;
+            playerCamera.transform.position = new Vector3(transform.position.x, transform.position.y + cameraYOffset, transform.position.z);
+            playerCamera.transform.SetParent(transform);
+        }
+        else
+        {
+            gameObject.GetComponent<PlayerController>().enabled = false;
         }
     }
 
-    private void OnColorChanged(Color oldCol, Color newCol)
-    {
-        if (playerInfo != null)
-        {
-            playerInfo.color = newCol;
-        }
-
-        Renderer renderer = GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            playerMaterialClone = new Material(renderer.material);
-            playerMaterialClone.color = newCol;
-            renderer.material = playerMaterialClone;
-        }
-    }
-
-    [Client]
-    private void Awake()
-    {
-        rb = GetComponent<Rigidbody>();
-        cam = Camera.main;
-        playerInfo = GetComponentInChildren<TextMeshProUGUI>();
-        Renderer renderer = GetComponent<Renderer>();
-
-        if (renderer != null)
-        {
-            playerMaterialClone = new Material(renderer.material);
-        }
-    }
-
-    [Client]
     void Start()
     {
-        rb.freezeRotation = true;
-        if (!isLocalPlayer) return;
+        characterController = GetComponent<CharacterController>();
 
-        string name = "Player" + Random.Range(100, 999);
-        Color color = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
-        CmdSetupPlayer(name, color);
+        // Lock cursor
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
-    [Command]
-    public void CmdSetupPlayer(string name, Color col)
-    {
-        playerName = name;
-        playerColor = col;
-    }
-
-    [Client]
     void Update()
     {
-        if (!isLocalPlayer)
+        bool isRunning = false;
+
+        // Press Left Shift to run
+        isRunning = Input.GetKey(KeyCode.LeftShift);
+
+        // We are grounded, so recalculate move direction based on axis
+        Vector3 forward = transform.TransformDirection(Vector3.forward);
+        Vector3 right = transform.TransformDirection(Vector3.right);
+
+        float curSpeedX = canMove ? (isRunning ? runningSpeed : walkingSpeed) * Input.GetAxis("Vertical") : 0;
+        float curSpeedY = canMove ? (isRunning ? runningSpeed : walkingSpeed) * Input.GetAxis("Horizontal") : 0;
+        float movementDirectionY = moveDirection.y;
+        moveDirection = (forward * curSpeedX) + (right * curSpeedY);
+
+        if (Input.GetButton("Jump") && canMove && characterController.isGrounded)
         {
-            return;
+            moveDirection.y = jumpSpeed;
+        }
+        else
+        {
+            moveDirection.y = movementDirectionY;
         }
 
-        float moveHorizontal = Input.GetAxis("Horizontal");
-        float moveVertical = Input.GetAxis("Vertical");
-
-        movement = new Vector3(moveHorizontal, 0.0f, moveVertical);
-    }
-
-    [Client]
-    void FixedUpdate()
-    {
-        if (!isLocalPlayer)
+        if (!characterController.isGrounded)
         {
-            return;
+            moveDirection.y -= gravity * Time.deltaTime;
         }
-        MovePlayer();
-        HandleRotation();
-    }
 
-    void MovePlayer()
-    {
-        rb.MovePosition(transform.position + movement * movementSpeed * Time.fixedDeltaTime);
-    }
+        // Move the controller
+        characterController.Move(moveDirection * Time.deltaTime);
 
-    [SerializeField] private float _rotationSpeed = 450;
-    private Plane _groundPlane = new(Vector3.up, Vector3.zero);
-    private Camera cam;
-
-    private void HandleRotation()
-    {
-        var ray = cam.ScreenPointToRay(Input.mousePosition);
-
-        if (_groundPlane.Raycast(ray, out var enter))
+        // Player and Camera rotation
+        if (canMove && playerCamera != null)
         {
-            var hitPoint = ray.GetPoint(enter);
-
-            var dir = hitPoint - transform.position;
-            dir.y = 0;
-
-            var targetRotation = Quaternion.LookRotation(dir);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime);
+            rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
+            rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
+            playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
+            transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
         }
     }
 }

@@ -1,32 +1,37 @@
-using Mirror;
+using FishNet.Connection;
+using FishNet.Managing;
+using FishNet.Object;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
-// class that displays messages
-
-public class PlayerMessageController : MonoBehaviour
+public class PlayerMessageController : NetworkBehaviour
 {
-    public static PlayerMessageController instance;
     [SerializeField] private PlayerMessage messagePrefab;
 
-    private void Start()
+    private void Update()
     {
-        instance = this;
+        // on input asks servers to send message to everyone, sender receives different message
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            SendMessageServerRpc(base.LocalConnection);
+        }
     }
 
-    public void LocalMessage(int _number)
+    [ServerRpc(RequireOwnership = false)]
+    private void SendMessageServerRpc(NetworkConnection _target)
     {
-        PlayerMessage _newMessage = Instantiate(messagePrefab, transform);
-        string _messageText = "I Sent: " + _number;
-        _newMessage.SetMessage(_messageText);
+        int _number = UnityEngine.Random.Range(0, 100);
+        SendMessageObserversRpc(_target, _number);
     }
 
-    public void MessageReceived(int _number)
+    [ObserversRpc]
+    private void SendMessageObserversRpc(NetworkConnection _target, int _number)
     {
         PlayerMessage _newMessage = Instantiate(messagePrefab, transform);
-        string _messageText = "Hello " + _number;
+
+        bool _isSender = _target == base.LocalConnection;
+        string _messageText = _isSender ? "I Sent: " + _number : "Hello " + _number;
         _newMessage.SetMessage(_messageText);
     }
 }

@@ -1,106 +1,67 @@
-using Mirror;
+using FishNet.Object;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// LMB bullet with no rigidbody
-// RMB bullet with rigidbody spawned on client side
-// MMB bullet with rigidbody spawned on server side using Spawn
+// LMB spawns bullet with no rigidbody, spawn on server and synchronizes using ServerManager.Spawn
+// RMB spawns bullet with rigidbody, spawns locally then on other clients
 
 public class PlayerShooting : NetworkBehaviour
 {
-    public float weaponSpeed = 30.0f;
-    public float weaponForce = 2f;
-    public float weaponLife = 3.0f;
-    public float weaponCooldown = 1.0f;
+    [SerializeField] private Bullet bulletPrefab;
+    [SerializeField] private GameObject ballPrefab;
+    [SerializeField] private float speed = 3f;
 
-    public GameObject weaponBullet;
-    public ProjectileWithTransformPosition weaponBulletNoRb;
-    public GameObject weaponBulletPredicted;
-    public Transform weaponFirePosition;
-
-    private float weaponCooldownTime;
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+        if (!base.IsOwner)
+            GetComponent<PlayerShooting>().enabled = false;
+    }
 
     private void Update()
     {
-        if(!isLocalPlayer)
+        if (Input.GetKeyDown(KeyCode.Mouse1))
         {
-            return;
+            SpawnBulletLocal(transform.position + transform.forward, transform.forward);
+            SpawnBullet(transform.position + transform.forward, transform.forward, TimeManager.Tick);
         }
-
-        if (Input.GetButtonDown("Fire1"))
+        if (Input.GetKeyDown(KeyCode.Mouse0))
         {
-            if (Time.time > weaponCooldownTime)
-            {
-                weaponCooldownTime = Time.time + weaponCooldown;
-                CmdShootRay();
-            }
-        }
-
-        if (Input.GetButtonDown("Fire2"))
-        {
-            if (Time.time > weaponCooldownTime)
-            {
-                weaponCooldownTime = Time.time + weaponCooldown;
-                CmdShootBulletRb();
-            }
-        }
-
-        if (Input.GetButtonDown("Fire3"))
-        {
-            if (Time.time > weaponCooldownTime)
-            {
-                weaponCooldownTime = Time.time + weaponCooldown;
-                FireWeaponLocal();
-            }
+            SpawnBall(transform.position + transform.forward, transform.forward, TimeManager.Tick);
         }
     }
 
-    [Command]
-    void CmdShootRay()
+    [ServerRpc]
+    private void SpawnBullet(Vector3 startPosition, Vector3 direction, uint startTick)
     {
-        RpcFireWeapon();
+        SpawnBulletObserver(startPosition, direction, startTick);
     }
 
-    [ClientRpc]
-    void RpcFireWeapon()
+    [ObserversRpc(ExcludeOwner = true)]
+    private void SpawnBulletObserver(Vector3 startPosition, Vector3 direction, uint startTick)
     {
-        var _dir = transform.forward;
-        ProjectileWithTransformPosition bullet = Instantiate(weaponBulletNoRb, weaponFirePosition.position, weaponFirePosition.rotation);
-        bullet.Init(_dir);
+        float timeDifference = (float)(TimeManager.Tick - startTick) / TimeManager.TickRate;
+        Vector3 spawnPosition = startPosition + direction * speed * timeDifference;
 
-        Destroy(bullet, weaponLife);
+        Bullet spawned = Instantiate(bulletPrefab, spawnPosition, Quaternion.identity);
+        spawned.SetDirection(direction);
     }
 
-    [Command]
-    void CmdShootBulletRb()
+    private void SpawnBulletLocal(Vector3 startPosition, Vector3 direction)
     {
-        RpcShootBulletRb();
+        Bullet spawned = Instantiate(bulletPrefab, startPosition, Quaternion.identity);
+        spawned.SetDirection(direction);
     }
 
-    [ClientRpc]
-    void RpcShootBulletRb()
+    [ServerRpc(RequireOwnership = false)]
+    private void SpawnBall(Vector3 startPosition, Vector3 direction, uint startTick)
     {
-        GameObject bullet = Instantiate(weaponBullet, weaponFirePosition.position, weaponFirePosition.rotation);
-        bullet.GetComponent<Rigidbody>().velocity = bullet.transform.forward * weaponSpeed;
+        GameObject obj = Instantiate(ballPrefab, startPosition, Quaternion.identity);
+        ServerManager.Spawn(obj);
 
-        Destroy(bullet, weaponLife);
-    }
-
-    [Command]
-    void CmdFireWeapon()
-    {
-        GameObject bullet = Instantiate(weaponBulletPredicted, weaponFirePosition.position, weaponFirePosition.rotation);
-        Rigidbody rb = bullet.GetComponent<Rigidbody>();
-        rb.AddForce(bullet.transform.forward * weaponForce, ForceMode.Impulse);
-
-        NetworkServer.Spawn(bullet);
-
-        Destroy(bullet, weaponLife);
-    }
-
-    void FireWeaponLocal()
-    {
-        CmdFireWeapon();
+        Rigidbody ballRigidbody = obj.GetComponent<Rigidbody>();
+        Vector3 force = direction.normalized * 5f;
+        ballRigidbody.AddForce(force, ForceMode.Impulse);
     }
 }
